@@ -20,6 +20,10 @@
  * @subpackage Ktkp/admin
  * @author     Agus Nurwanto <agusnurwantomuslim@gmail.com>
  */
+
+use Carbon_Fields\Container;
+use Carbon_Fields\Field;
+
 class Ktkp_Admin {
 
 	/**
@@ -98,6 +102,64 @@ class Ktkp_Admin {
 
 		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/ktkp-admin.js', array( 'jquery' ), $this->version, false );
 
+	}
+
+	public function getScriptOutput($path, $print = FALSE){
+	    ob_start();
+
+	    if( is_readable($path) && $path ){
+	        include $path;
+	    }else{
+	        return FALSE;
+	    }
+
+	    if( $print == FALSE ){
+	        return ob_get_clean();
+	    }else{
+	        echo ob_get_clean();
+	    }
+	}
+
+	public function reset_val(){
+		$url = plugin_dir_path( __FILE__ ).'partials/sampul-spk.html';
+		$sampul_spk = $this->getScriptOutput($url);
+		carbon_set_theme_option( 'ktkp_sampul_spk', $sampul_spk );
+	}
+
+	// https://docs.carbonfields.net/#/containers/theme-options
+	public function crb_attach_ktkp_options(){
+		$sampul_spk = $this->getScriptOutput(Carbon_Fields_Plugin\PLUGIN_FILE.'/admin/partials/sampul-spk.html');
+		$basic_options_container = Container::make( 'theme_options', __( 'Kontrak Kerja' ) )
+			->set_page_menu_position( 5 )
+	        ->add_fields( array(
+	        	Field::make( 'image', 'ktkp_logo_daerah', __( 'Logo Daerah' ) )
+	        		->set_type( array( 'image' ) )
+	        		->set_value_type( 'url' ),
+	        	Field::make( 'text', 'ktkp_nama_daerah', __( 'Nama Daerah' ) )
+	        		->set_default_value('PEMERINTAH KABUPATEN MAGETAN'),
+	        	Field::make( 'text', 'ktkp_opd', __( 'Nama OPD' ) )
+	        		->set_default_value('DINAS KOMUNIKASI DAN INFORMATIKA'),
+	        	Field::make( 'text', 'ktkp_alamat_opd', __( 'Alamat OPD' ) )
+	        		->set_default_value('Jalan.  Kartini No. 2 Magetan Kode Pos 63314'),
+	        	Field::make( 'text', 'ktkp_tlp_opd', __( 'Nomor Telephone OPD' ) )
+	        		->set_default_value('0351 - 8197913'),
+	        	Field::make( 'text', 'ktkp_email_opd', __( 'Email OPD' ) )
+	        		->set_default_value('kominfo@magetan.go.id'),
+	            Field::make( 'rich_text', 'ktkp_sampul_spk', 'Sampul SPK' )
+	            	->set_default_value($sampul_spk)
+	            	->set_help_text('link GITHUB <a href="https://github.com/agusnurwanto/ktkp" target="_blank">github.com/agusnurwanto/ktkp</a>.')
+	        ) );
+
+	    Container::make( 'theme_options', __( 'Proses PL' ) )
+		    ->set_page_parent( $basic_options_container );
+
+	    Container::make( 'theme_options', __( 'SPK' ) )
+		    ->set_page_parent( $basic_options_container );
+
+	    Container::make( 'theme_options', __( 'Pengadaan Langsung' ) )
+		    ->set_page_parent( $basic_options_container );
+		
+		// $this->reset_val();
 	}
 
 }
